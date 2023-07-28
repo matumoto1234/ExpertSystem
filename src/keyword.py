@@ -1,27 +1,11 @@
 import nltk
 nltk.download('punkt', quiet=True)
+from token_freq import token_frequency_ratio
 
 
 def _make_token_to_frequency_ratio(texts: list[str]) -> dict[str, float]:
-    token_to_frequency_ratio: dict[str, float] = {}
-
-    # すべてのテキストのトークンの出現頻度を数える
-    for text in texts:
-        tokens = nltk.word_tokenize(text)
-
-        for token in tokens:
-            if token not in token_to_frequency_ratio:
-                token_to_frequency_ratio[token] = 0
-
-            token_to_frequency_ratio[token] += 1
-
-    # すべてのテキストのトークンの出現頻度をトークンの数で割る
-    token_count = len(token_to_frequency_ratio.keys())
-
-    for token in token_to_frequency_ratio.keys():
-        token_to_frequency_ratio[token] = token_to_frequency_ratio[token] / token_count
-
-    return token_to_frequency_ratio
+    all_text: str = " ".join(texts)
+    return token_frequency_ratio(all_text)
 
 
 def _is_keyword(all_ratio: float, author_ratio: float) -> bool:
@@ -34,7 +18,8 @@ def extract_keywords(author_to_texts: dict[str, list[str]], author: str) -> list
     """Extract keywords from the given author's texts."""
 
     # すべてのテキストのトークンの出現率
-    all_token_to_ratio: dict[str, float] = _make_token_to_frequency_ratio(author_to_texts.values())
+    all_texts: list[str] = [text for texts in list(author_to_texts.values()) for text in texts]
+    all_token_to_ratio: dict[str, float] = _make_token_to_frequency_ratio(all_texts)
 
     texts: list[str] = author_to_texts[author]
 
@@ -49,3 +34,22 @@ def extract_keywords(author_to_texts: dict[str, list[str]], author: str) -> list
             keywords.append(token)
 
     return keywords
+
+
+if __name__ == '__main__':
+    author_to_texts: dict[str, list[str]] = {
+        "hoge": [
+            "I am hoge.",
+            "Nice to meet you.",
+            "keyword  keyword",
+        ],
+        "fuga": [
+            "I am fuga.",
+            "Nice to meet you.",
+            "keyword keyword keyword keyword keyword keyword",
+        ],
+    }
+
+    keywords = extract_keywords(author_to_texts, "hoge")
+
+    print("keywords:", keywords)
