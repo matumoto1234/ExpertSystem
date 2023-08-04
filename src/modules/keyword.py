@@ -1,6 +1,6 @@
 import nltk
 nltk.download('punkt', quiet=True)
-from token_freq import token_frequency_ratio
+from .token_freq import token_frequency_ratio
 
 
 def _make_token_to_frequency_ratio(texts: list[str]) -> dict[str, float]:
@@ -11,7 +11,7 @@ def _make_token_to_frequency_ratio(texts: list[str]) -> dict[str, float]:
 def _is_keyword(all_ratio: float, author_ratio: float) -> bool:
     """Return True if the given author's token frequency ratio is 10% or more different from the average of all authors."""
     diff: float = abs(all_ratio - author_ratio)
-    return diff >= 0.1
+    return diff >= 0.05
 
 
 def extract_keywords(author_to_texts: dict[str, list[str]], author: str) -> list[str]:
