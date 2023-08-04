@@ -1,4 +1,5 @@
 from modules import keyword, keyword_pos, token_freq
+import matplotlib.pyplot as plt
 
 
 def _read_file(path: str) -> str:
@@ -31,6 +32,19 @@ def _count_same_elements(a: list, b: list) -> int:
             count += 1
 
     return count
+
+
+def max_n_elements(d: dict, n: int) -> dict:
+    key_values = list(d.items())
+    key_values.sort(reverse=True, key=lambda x: x[1])
+
+    result: dict = {}
+
+    for i in range(n):
+        key, value = key_values[i]
+        result[key] = value
+
+    return result
 
 
 def main():
@@ -134,7 +148,39 @@ def main():
             max_count_sum = count_sum
             max_author = author
 
-    print("Questioned author:", max_author)
+    estimated_author = max_author
+
+    print("Questioned author:", estimated_author)
+
+    # 推定した著者のトークンの出現頻度とQuestionedテキストのトークンの出現頻度を出力
+    plt.xlabel("token")
+    plt.ylabel("frequency ratio")
+    plt.ylim(0, 1)
+    plt.title("token frequency ratio of estimated author texts(red) and Questioned text(blue)")
+
+    estimated_author_token_to_freq_ratio: dict[str, float] = token_freq.token_frequency_ratio(author_to_texts[estimated_author][0])
+
+    max10_estimated = max_n_elements(estimated_author_token_to_freq_ratio, 10)
+
+    plt.bar(
+        list(max10_estimated.keys()),
+        list(max10_estimated.values()),
+        width=0.3,
+        align='center',
+        color='red'
+    )
+
+    max10_questioned_token = max_n_elements(questioned_token_to_freq_ratio, 10)
+
+    plt.bar(
+        list(max10_questioned_token.keys()),
+        list(max10_questioned_token.values()),
+        width=0.3,
+        align='edge',
+        color='blue'
+    )
+
+    plt.show()
 
 
 if __name__ == '__main__':
