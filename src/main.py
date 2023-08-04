@@ -90,7 +90,6 @@ def main():
     questioned_keywords: list[str] = author_to_keywords["Q-dataset.txt"]
 
     # Questionedなテキストのpos_tagを検出
-    print(author_to_keywords)
     questioned_pos_tags: list[list[str]] = author_to_pos_tags["Q-dataset.txt"]
 
     # Questionedなテキストの各トークンの出現頻度
@@ -119,9 +118,23 @@ def main():
             questioned_token_to_freq_ratio[token] -
             all_token_to_freq_ratio[token]
         )
+        # TODO: diffを使っていい感じにやる
 
-    print(author_to_same_keywords_count)
-    print(author_to_same_pos_tags_count)
+    # 類似度が最も高い著者を出力
+    authors = ["K1-dataset.txt", "K2-dataset.txt"]
+
+    max_count_sum: int = -1
+    max_author: str = ""
+    for author in authors:
+        count_sum: int = 0
+        count_sum += author_to_same_keywords_count[author]
+        count_sum += author_to_same_pos_tags_count[author]
+
+        if max_count_sum < count_sum:
+            max_count_sum = count_sum
+            max_author = author
+
+    print("Questioned author:", max_author)
 
 
 if __name__ == '__main__':

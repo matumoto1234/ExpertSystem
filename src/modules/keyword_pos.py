@@ -32,6 +32,9 @@ def get_following_pos_tags(word: str, length: int, text: str) -> list[list[str]]
     for i in _find_word(word, tokens):
         following_pos_tag = []
         for k in range(length):
+            if i + k + 1 >= len(tagged_tokens):
+                continue
+
             _, tag = tagged_tokens[i + k + 1]
             following_pos_tag.append(tag)
         following_pos_tags.append(following_pos_tag)
