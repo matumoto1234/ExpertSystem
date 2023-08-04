@@ -195,7 +195,7 @@ def main():
 
         count_sums.append((count_sum, author))
 
-    count_sums.sort(reverse=True, key=lambda x: x[0])
+    count_sums.sort(reverse=True, key=lambda x: x[0][0] + x[0][1] + x[0][2])
 
     estimated_author: str = count_sums[0][1]
 
