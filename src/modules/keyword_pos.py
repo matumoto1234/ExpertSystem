@@ -3,18 +3,6 @@ nltk.download('punkt', quiet=True)
 nltk.download('averaged_perceptron_tagger', quiet=True)
 
 
-def _count_token(tokens: list[str]) -> dict[str, int]:
-    token_count: dict[str, int] = {}
-
-    for token in tokens:
-        token_count[token] = 0
-
-    for token in tokens:
-        token_count[token] = token_count[token] + 1
-
-    return token_count
-
-
 def _find_word(word: str, tokens: list[str]) -> list[int]:
     found_index = []
     for i in range(len(tokens)):

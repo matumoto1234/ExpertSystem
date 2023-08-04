@@ -47,6 +47,38 @@ def max_n_elements(d: dict, n: int) -> dict:
     return result
 
 
+def plot_result(estimated_author_token_to_freq_ratio: dict[str, float], questioned_token_to_freq_ratio: dict[str, float]):
+    # 推定した著者のトークンの出現頻度とQuestionedテキストのトークンの出現頻度を出力
+    plt.xlabel("token")
+    plt.ylabel("frequency ratio")
+    plt.ylim(0, 1)
+    plt.title(
+        "token frequency ratio of estimated author texts(red) and Questioned text(blue)"
+    )
+
+    max10_estimated = max_n_elements(estimated_author_token_to_freq_ratio, 10)
+
+    plt.bar(
+        list(max10_estimated.keys()),
+        list(max10_estimated.values()),
+        width=0.3,
+        align='center',
+        color='red'
+    )
+
+    max10_questioned_token = max_n_elements(questioned_token_to_freq_ratio, 10)
+
+    plt.bar(
+        list(max10_questioned_token.keys()),
+        list(max10_questioned_token.values()),
+        width=0.3,
+        align='edge',
+        color='blue'
+    )
+
+    plt.show()
+
+
 def main():
     author_to_texts: dict[str, list[str]] = _read_dataset()
 
@@ -108,7 +140,8 @@ def main():
 
     # Questionedなテキストの各トークンの出現頻度
     questioned_all_texts: list[str] = [
-        text for text in author_to_texts["Q-dataset.txt"]]
+        text for text in author_to_texts["Q-dataset.txt"]
+    ]
     questioned_all_text: str = "\n".join(questioned_all_texts)
     questioned_token_to_freq_ratio: dict[str, float] = token_freq.token_frequency_ratio(
         questioned_all_text
@@ -127,60 +160,53 @@ def main():
         author_to_same_pos_tags_count[author] = same_count
 
     # Questionedなテキストの各トークンの出現頻度と、全てのテキストの各トークンの出現頻度の差を見る
-    for token in questioned_token_to_freq_ratio.keys():
-        diff: int = abs(
-            questioned_token_to_freq_ratio[token] -
-            all_token_to_freq_ratio[token]
+    author_to_token_to_freq_ratio: dict[str, dict[str, float]] = {}
+    for author, texts in author_to_texts.items():
+        text = "\n".join(texts)
+        author_to_token_to_freq_ratio[author] = token_freq.token_frequency_ratio(
+            text
         )
-        # TODO: diffを使っていい感じにやる
 
-    # 類似度が最も高い著者を出力
     authors = ["K1-dataset.txt", "K2-dataset.txt"]
 
-    max_count_sum: int = -1
-    max_author: str = ""
+    author_to_diff_sum: dict[str, float] = {}
     for author in authors:
-        count_sum: int = 0
-        count_sum += author_to_same_keywords_count[author]
-        count_sum += author_to_same_pos_tags_count[author]
+        diff_sum = 0
+        for token, ratio in questioned_token_to_freq_ratio.items():
+            if token not in author_to_token_to_freq_ratio[author]:
+                diff_sum += ratio
+            else:
+                diff_sum += ratio - \
+                    author_to_token_to_freq_ratio[author][token]
 
-        if max_count_sum < count_sum:
-            max_count_sum = count_sum
-            max_author = author
+        author_to_diff_sum[author] = diff_sum
 
-    estimated_author = max_author
+    # 類似度が最も高い著者を出力
+    count_sums: list[tuple[tuple[int, int, float], str]] = []
+    for author in authors:
+        # 20 は評価用の係数。用調整
+        diff = 0 if author_to_diff_sum[author] == 0 else 20 / \
+            author_to_diff_sum[author]
+        count_sum: tuple[int, int, float] = (
+            author_to_same_keywords_count[author],
+            author_to_same_pos_tags_count[author],
+            diff
+        )
+
+        count_sums.append((count_sum, author))
+
+    count_sums.sort(reverse=True, key=lambda x: x[0])
+
+    estimated_author: str = count_sums[0][1]
 
     print("Questioned author:", estimated_author)
 
-    # 推定した著者のトークンの出現頻度とQuestionedテキストのトークンの出現頻度を出力
-    plt.xlabel("token")
-    plt.ylabel("frequency ratio")
-    plt.ylim(0, 1)
-    plt.title("token frequency ratio of estimated author texts(red) and Questioned text(blue)")
-
-    estimated_author_token_to_freq_ratio: dict[str, float] = token_freq.token_frequency_ratio(author_to_texts[estimated_author][0])
-
-    max10_estimated = max_n_elements(estimated_author_token_to_freq_ratio, 10)
-
-    plt.bar(
-        list(max10_estimated.keys()),
-        list(max10_estimated.values()),
-        width=0.3,
-        align='center',
-        color='red'
+    estimated_author_token_to_freq_ratio: dict[str, float] = token_freq.token_frequency_ratio(
+        author_to_texts[estimated_author][0]
     )
 
-    max10_questioned_token = max_n_elements(questioned_token_to_freq_ratio, 10)
-
-    plt.bar(
-        list(max10_questioned_token.keys()),
-        list(max10_questioned_token.values()),
-        width=0.3,
-        align='edge',
-        color='blue'
-    )
-
-    plt.show()
+    plot_result(estimated_author_token_to_freq_ratio,
+                questioned_token_to_freq_ratio)
 
 
 if __name__ == '__main__':
